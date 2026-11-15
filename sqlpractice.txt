@@ -1,0 +1,104 @@
+-- Hər işçi üçün iki sütun göstərin:
+--   qisa_ad  -> adın ilk hərfi + nöqtə + boşluq + soyad   (məs: S. King)
+--   email    -> email sütunu kiçik hərflə + '@company.az'
+-- Nəticə soyada görə əlifba sırası ilə olsun.
+SELECT SUBSTR(FIRST_NAME,1,1) || '.' || ' ' || LAST_NAME,
+ LOWER(EMAIL) || '@company.az'  FROM EMPLOYEES e 
+ -- Soyadı 5 hərfdən uzun olan, amma adında 'a' hərfi (böyük və ya kiçik)
+-- OLMAYAN işçiləri tapın.
+ SELECT * FROM EMPLOYEES 
+ WHERE LENGTH(LAST_NAME)<5 AND INSTR(LOWER(FIRST_NAME),'a')=0
+
+-- A3 [*]
+-- Adı və soyadı eyni hərflə başlayan işçiləri tapın.
+ SELECT * FROM EMPLOYEES 
+ WHERE SUBSTR(FIRST_NAME,1,1)=SUBSTR(LAST_NAME,1,1)
+ -- A4 [**]
+-- Bütün işçilərin maaşı 7.5% artırılır. Göstərin:
+--   ad, soyad, köhnə maaş,
+--   yeni_maas  -> 2 rəqəmə qədər yuvarlaqlaşdırılmış
+--   artim      -> artım məbləği, tam ədədə AŞAĞI yuvarlaqlaşdırılmış
+-- Yalnız yeni maaşı 10000-dən çox olanlar görünsün.
+-- İpucu: WHERE-də alias işləyirmi?
+ SELECT ROUND((SALARY*1.075),2) AS YENI_MAASH ,FLOOR(SALARY*0.075) AS ARTIM FROM EMPLOYEES
+ WHERE  ROUND((SALARY*1.075),2)>10000
+ 
+-- A5 [*]
+-- employee_id-si TƏK olan və maaşı 1000-ə TAM bölünən işçiləri tapın.
+ SELECT * FROM EMPLOYEES e 
+ WHERE  MOD(TO_NUMBER(EMPLOYEE_ID),2)=1 AND MOD(SALARY,1000)=0
+ -- A6 [**]
+-- Hər işçinin şirkətdə nə qədər işlədiyini bu formatda göstərin:
+--   '12 il 4 ay'
+-- (tam illər + qalan tam aylar)
+ SELECT  FLOOR(MONTHS_BETWEEN(DATE '2026-10-26', e.HIRE_DATE) / 12)
+    || ' il ' ||
+    FLOOR(MOD(MONTHS_BETWEEN(DATE '2026-10-26', e.HIRE_DATE), 12))
+    || ' ay' FROM EMPLOYEES e
+    
+-- A7 [**]
+-- Hər işçinin işə başlama tarixini bu formatda göstərin:
+--   'Monday, 17 June 2003'
+-- və yalnız HƏFTƏ SONU (şənbə və ya bazar) işə başlayanları göstərin.
+SELECT TO_CHAR(HIRE_DATE, 'FMDay, DD Month YYYY')
+FROM EMPLOYEES e
+ -- A8 [*]
+-- Ayın SON 5 GÜNÜNDƏ işə qəbul olunan işçiləri tapın.
+-- (ayın neçə gün olmasından asılı olmayaraq düzgün işləməlidir)
+SELECT *
+FROM EMPLOYEES
+WHERE HIRE_DATE >= LAST_DAY(HIRE_DATE) - 4
+
+-- A9 [**]
+-- Hər işçinin sınaq müddəti işə qəbuldan 6 ay sonra bitir.
+-- Göstərin: ad, hire_date, sınaq müddətinin bitdiyi tarix,
+-- və ondan SONRAKI ilk bazar ertəsi (işçinin rəsmi qəbul günü).
+SELECT FIRST_NAME,HIRE_DATE,ADD_MONTHS(HIRE_DATE,6) AS SINAQ_M,
+NEXT_DAY(ADD_MONTHS(HIRE_DATE,6),'MONDAY') AS RESMI_QEBUL FROM EMPLOYEES e 
+
+-- A10 [**]
+-- Hər işçi üçün göstərin:
+--   illik_gelir -> 12 aylıq maaş + komissiya
+--                  (komissiya = illik maaş * commission_pct,
+--                   komissiyası olmayan üçün 0)
+--   status      -> 'Komissiyalı' və ya 'Komissiyasız'
+-- İllik gəlirə görə azalan sıra ilə.
+
+SELECT (12*SALARY + 12*SALARY*NVL(COMMISSION_PCT,0)) AS illik_gelir ,
+CASE 
+                WHEN e.COMMISSION_PCT  IS NULL THEN 'Komissiyasız'
+                ELSE 'Komissiyalı'
+                END AS STATUS
+  FROM EMPLOYEES e 
+  ORDER BY illik_gelir DESC
+  
+  
+-- A11 [**]
+-- Hər işçinin adını və rəhbərini göstərin:
+--   manager_id varsa onun özü, yoxdursa 'Rəhbər yoxdur' yazılsın.
+-- İpucu: NVL(manager_id, 'Rəhbər yoxdur') niyə işləmir?
+  SELECT  FIRST_NAME, CASE 
+  	                     WHEN MANAGER_ID IS NULL THEN 'Rəhbər yoxdur' 
+  	                     ELSE TO_CHAR(MANAGER_ID)
+                   END AS Rəhbər
+            FROM EMPLOYEES 
+
+A12 [***]
+-- Maaşa görə kateqoriya yaradın:
+--   15000 və çox       -> 'Rəhbər'
+--   10000 – 14999      -> 'Yüksək'
+--   5000  – 9999       -> 'Orta'
+--   5000-dən az        -> 'Aşağı'
+-- Nəticə əvvəlcə kateqoriyaya görə (Rəhbər, Yüksək, Orta, Aşağı
+-- ardıcıllığı ilə — ƏLİFBA SIRASI İLƏ YOX!), sonra kateqoriya
+-- daxilində soyada görə sıralansın.
+SELECT SALARY, CASE 
+           WHEN SALARY>=15000 THEN 'Rəhbər'
+           WHEN SALARY>10000 AND SALARY<14999 THEN 'Yüksək'
+           WHEN SALARY>5000 AND SALARY<9999 THEN 'Orta'
+           ELSE 'Aşağı'
+       END AS CATEGORY
+    FROM EMPLOYEES
+       
+           
+                                                                
