@@ -1,0 +1,41 @@
+-- B1 [*]
+-- Hər vəzifə (job_id) üzrə göstərin:
+--   işçi sayı, ən aşağı maaş, ən yüksək maaş,
+--   orta maaş (2 rəqəmə qədər yuvarlaq),
+--   ən yüksək və ən aşağı maaş arasındakı fərq.
+-- Yalnız 3 və daha çox işçisi olan vəzifələr,
+-- maaş fərqinə görə azalan sıra ilə.
+SELECT e.JOB_ID , COUNT(e.EMPLOYEE_ID ) AS işçi_sayı ,MIN(SALARY) AS ən_aşağı_maaş,
+MAX(SALARY) AS ən_yüksək_maaş,ROUND(AVG(SALARY),2) AS  orta_maaş,
+MAX(SALARY)-MIN(SALARY) AS FERQ FROM EMPLOYEES e 
+GROUP BY JOB_ID
+HAVING COUNT(e.EMPLOYEE_ID )>=3
+ORDER BY MAX(SALARY)-MIN(SALARY) DESC
+-- B2 [**]
+-- Hər şöbə üzrə komissiya ALAN və ALMAYAN işçilərin sayını
+-- yan-yana iki sütunda göstərin.
+-- Şöbəsi olmayan işçilər də ayrıca sətirdə, ən yuxarıda görünsün.
+SELECT
+    DEPARTMENT_ID,
+    COUNT(CASE
+              WHEN COMMISSION_PCT IS NULL
+              THEN EMPLOYEE_ID
+          END) AS ALMAYAN,
+    COUNT(CASE
+              WHEN COMMISSION_PCT IS NOT NULL
+              THEN EMPLOYEE_ID
+          END) AS ALAN
+FROM EMPLOYEES
+GROUP BY DEPARTMENT_ID
+ORDER BY
+    CASE WHEN DEPARTMENT_ID IS NULL THEN 0 ELSE 1 END,
+    DEPARTMENT_ID
+ -- B3 [*]
+-- Hər il üzrə neçə işçinin işə qəbul olunduğunu göstərin.
+-- Ən çox işçi qəbul olunan il ən yuxarıda olsun.
+    SELECT EXTRACT(YEAR FROM HIRE_DATE)  AS YEAR, 
+    COUNT(EMPLOYEE_ID) AS SAY FROM EMPLOYEES 
+    GROUP BY EXTRACT(YEAR FROM HIRE_DATE)
+        ORDER BY SAY DESC
+SELECT * FROM employees 
+
